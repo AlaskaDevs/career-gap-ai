@@ -83,7 +83,18 @@ def _dump_json(value: Any) -> str | None:
 
 
 def _load_json(value: str | None) -> Any:
-    return None if value is None else json.loads(value)
+    """Safely deserialize a JSON column; returns None on malformed data."""
+    if value is None:
+        return None
+    try:
+        return json.loads(value)
+    except (json.JSONDecodeError, TypeError) as exc:
+        import logging
+        logging.getLogger(__name__).warning(
+            "Malformed JSON column in database (first 100 chars): %.100s | Error: %s",
+            value, exc
+        )
+        return None
 
 
 def _as_dict(row: sqlite3.Row | None, json_columns: tuple[str, ...] = ()) -> dict[str, Any] | None:

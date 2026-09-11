@@ -1,10 +1,31 @@
+# Virtual environments
 venv/
+env/
+.venv/
+
+# Python cache
 __pycache__/
-*.pyc
-*.db
+*.py[cod]
+*.pyo
+*.pyd
+
+# Secrets — never commit
 .env
 .env.*
 !.env.example
+.streamlit/secrets.toml
+
+# Database files
+*.db
 *.sqlite
 *.sqlite3
-.streamlit/secrets.toml
+data/
+
+# Distribution / build
+dist/
+build/
+*.egg-info/
+
+# OS junk
+.DS_Store
+Thumbs.db
