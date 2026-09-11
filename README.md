@@ -13,7 +13,7 @@ CareerGap AI is a full-stack AI-powered career tool built for the hackathon. It 
 | Feature | Description |
 |---|---|
 | 📄 Resume Parsing | Upload PDF, DOCX, or TXT. Extracts name, skills, experience, education, certifications. |
-| 🔎 AI Job Search | Enter a job title + location — Gemini generates 3 realistic, relevant job listings. |
+| 🔎 AI Job Search | Enter a job title + location — It generates 3 realistic, relevant job listings. |
 | 📝 Paste a Job | Paste any job description — AI extracts must-have and preferred skills automatically. |
 | ⚡ Skill Gap Analysis | Semantic matching of your skills vs. the job using Gemini + deterministic scoring formula. |
 | 🧭 Personalized Roadmap | 4-week, week-by-week study plan tailored to your exact gaps, not generic advice. |
@@ -31,9 +31,9 @@ Step 1 · Upload & Analyze Resume
 Step 2 · Select a Target Job
         ↓  (AI search or paste + Gemini extracts requirements)
 Step 3 · Skill Gap Analysis
-        ↓  (Gemini semantic matching + deterministic score formula)
+        ↓  (semantic matching + deterministic score formula)
 Step 4 · Roadmap & Portfolio Project
-        ↓  (Gemini builds a 4-week plan + project + resume bullet)
+        ↓  (building a 4-week plan + project + resume bullet)
 Step 5 · History
         ↓  (SQLite stores everything — download PDF any time)
 ```
@@ -44,9 +44,9 @@ The app is a **single scrolling page** — no tabs. Each step unlocks automatica
 
 ## 📐 How the Match Score Is Calculated
 
-The final percentage is computed by **deterministic Python code**, not by Gemini. Gemini only classifies skills semantically (strong / partial / missing). The math is:
+The final percentage is computed by **deterministic Python code**. The math is:
 
-### Step 1 — Semantic classification (Gemini)
+### Step 1 — Semantic classification
 
 Each required skill is classified into one of three buckets:
 
@@ -100,7 +100,7 @@ The candidate is:
 `earned = 6 + 1.5 + 1 = 8.5`  
 `match_score = round(8.5 / 14 × 100, 1) = **60.7%**`
 
-> The score is always between 0% and 100%, clamped by code. Gemini cannot influence the number — only the classification that feeds into it.
+> The score is always between 0% and 100%, clamped by code. 
 
 ---
 
@@ -109,7 +109,7 @@ The candidate is:
 ```
 career-gap-ai/
 ├── app.py                  # Main Streamlit app — single-page scrolling UI
-├── logic.py                # All AI and business logic (Gemini calls, scoring, PDF)
+├── logic.py                # All AI and business logic (API calls, scoring, PDF)
 ├── db.py                   # SQLite persistence layer
 ├── ui_components.py        # Reusable Streamlit UI components
 ├── seed.py                 # Optional: pre-populate the database with demo data
@@ -132,9 +132,9 @@ career-gap-ai/
 
 #### `logic.py` — Core backend
 - `extract_text()` — parses PDF/DOCX/TXT in memory, never writes to disk
-- `analyze_resume()` — Gemini call: extracts structured candidate profile
-- `search_jobs()` — Gemini call: generates 3 relevant job listings from search criteria
-- `analyze_job_description()` — Gemini call: extracts must-have + preferred skills from pasted JD
+- `analyze_resume()` — API call: extracts structured candidate profile
+- `search_jobs()` — API call: generates 3 relevant job listings from search criteria
+- `analyze_job_description()` — API call: extracts must-have + preferred skills from pasted JD
 - `_semantic_match()` — Gemini call: classifies each required skill as strong/partial/missing
 - `compare_skills()` — deterministic scoring formula (no AI), returns full analysis dict
 - `generate_roadmap()` — Gemini call: 4-week, gap-targeted study plan
@@ -205,7 +205,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Configure your Gemini API key
+### 4. Configure your Gemini API key and IndianAPI key
 
 Copy the example file and add your key:
 
@@ -217,9 +217,9 @@ Open `.env` and set:
 
 ```env
 GEMINI_API_KEY=your_actual_gemini_api_key_here
+IndianAPI_API_KEY=your_actual_api_key_here
 ```
 
-Get a free key at: https://aistudio.google.com/app/apikey
 
 ### 5. Run the app
 
@@ -229,11 +229,6 @@ streamlit run app.py
 
 Open http://localhost:8501 in your browser.
 
-### 6. (Optional) Seed demo data
-
-```bash
-python seed.py
-```
 
 ---
 
@@ -261,73 +256,6 @@ When you click **📥 PDF** in the History section:
 3. All text is rendered through fpdf2's safe cell/multi_cell API (latin-1 encoded with replacement for non-ASCII characters)
 4. The report includes: candidate name + skills, target role + company, match score (color-coded), strong/partial/missing skill lists, top priority gap
 5. Bytes are passed directly to Streamlit's `st.download_button` — the file is never written to disk
-
----
-
-## 🧠 How Gemini Is Used
-
-The application makes **5 distinct Gemini calls** per full analysis run:
-
-| Call | Function | Output |
-|---|---|---|
-| 1 | `analyze_resume()` | Candidate profile JSON |
-| 2 | `search_jobs()` or `analyze_job_description()` | Job listings JSON or requirements JSON |
-| 3 | `_semantic_match()` | Skill classification JSON (strong/partial/missing) |
-| 4 | `generate_roadmap()` | 4-week plan JSON |
-| 5 | `generate_project()` | Portfolio project + resume bullet JSON |
-
-All calls:
-- Request `response_mime_type: "application/json"` for structured output
-- Are retried up to **4 times** with exponential backoff on 503/429 errors via `tenacity`
-- Use **input length limits** to prevent token overflows (resume: 30K chars, job: 15K chars)
-- Have their outputs type-validated and safe-defaulted before use
-
----
-
-## 📁 Database Schema
-
-```sql
-CREATE TABLE resumes (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    name        TEXT,           -- sanitized filename
-    raw_text    TEXT,           -- extracted resume text
-    parsed_json TEXT,           -- Gemini-extracted profile (JSON)
-    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE jobs (
-    id              INTEGER PRIMARY KEY AUTOINCREMENT,
-    title           TEXT,
-    company         TEXT,
-    location        TEXT,
-    description     TEXT,
-    responsibilities TEXT,      -- JSON array
-    skills          TEXT,       -- JSON: {must_have: [], preferred: []}
-    experience      TEXT,
-    job_type        TEXT,
-    apply_link      TEXT,       -- display only, never server-fetched
-    source          TEXT,       -- "AI-Generated" | "Pasted" | "Sample"
-    raw_json        TEXT,       -- full job object JSON
-    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE analyses (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    resume_id   INTEGER,
-    job_id      INTEGER,
-    match_score REAL,           -- 0.0 – 100.0, deterministic
-    result_json TEXT,           -- full analysis result JSON
-    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE roadmaps (
-    id           INTEGER PRIMARY KEY AUTOINCREMENT,
-    analysis_id  INTEGER,
-    roadmap_json TEXT,          -- 4-week plan JSON array
-    project_json TEXT,          -- portfolio project JSON
-    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
 
 ---
 
