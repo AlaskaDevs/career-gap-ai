@@ -1,5 +1,7 @@
 # 🎯 CareerGap AI
 
+**🌐 Live Demo:** [CareerGap AI · Streamlit](https://career-gp-ai.streamlit.app/)
+
 > **Upload your resume → pick a real job → discover your exact skill gaps → get a personalized 4-week learning roadmap.**
 
 CareerGap AI is a full-stack AI-powered career tool built for the hackathon. It compares your resume against real job requirements using Google Gemini, calculates a deterministic match score, identifies your strongest and weakest skills, and generates a week-by-week study plan to close the gap — all in a single scrolling page.
