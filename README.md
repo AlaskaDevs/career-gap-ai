@@ -340,6 +340,4 @@ This project was built as a hackathon submission demonstrating:
 
 ---
 
-## 📄 License
 
-MIT — see `LICENSE` for details.
