@@ -40,7 +40,7 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-_MODEL = "gemini-3.6-flash"
+_MODEL = "gemini-3.7-flash"
 
 # ── Input length limits (characters) ────────────────────────────────────────
 _MAX_RESUME_CHARS   = 30_000
