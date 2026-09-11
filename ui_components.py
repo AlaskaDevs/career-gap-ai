@@ -129,7 +129,12 @@ def display_project_card(project: Mapping[str, Any] | None) -> None:
             details.append(f"Difficulty: {project['difficulty']}")
         if details:
             st.caption("  ·  ".join(details))
-        st.button("Copy resume bullet", key="copy_resume_bullet")
+        bullet = project.get("resume_bullet", "")
+        if bullet:
+            st.markdown("**📋 Resume Bullet** *(select & copy)*")
+            st.code(bullet, language="")
+        else:
+            st.caption("Re-generate roadmap to get an AI-written resume bullet for this project.")
 
 
 def display_analysis_header(analysis: Mapping[str, Any]) -> None:

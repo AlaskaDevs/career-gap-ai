@@ -1,11 +1,8 @@
-from db import get_connection, init_db
+from db import get_connection, init_db, save_resume
 
 def seed_data():
-    conn = init_db()
-    cursor = conn.cursor()
-    # add demo rows here tomorrow before evaluation
-    cursor.execute("INSERT INTO items (name) VALUES (?)", ("example",))
-    conn.commit()
+    init_db()
+    save_resume("sample_resume.txt", "Sample Name\nExperience: 5 years Python", {"name": "Sample Name", "skills": ["Python"]})
 
 if __name__ == "__main__":
     seed_data()
